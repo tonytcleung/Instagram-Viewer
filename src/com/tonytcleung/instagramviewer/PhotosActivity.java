@@ -9,6 +9,9 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -22,16 +25,29 @@ public class PhotosActivity extends Activity {
 	public static final String CLIENT_ID		= "bc4e71c7e67e4b0e968f7d1e36a57342";
 	private ArrayList<InstagramPhoto> photos;
 	private InstagramPhotoAdapter photosAdapter;		
+    private SwipeRefreshLayout swipeContainer;
+
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photos);	
         
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+            	// call populate photos
+            	fetchPopularPhotos();
+            } 
+        });
+        // Configure the refreshing colors        
+        swipeContainer.setColorSchemeColors(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+        
         fetchPopularPhotos();
     }
-
-
+    
     private void fetchPopularPhotos() {
     	// initialize array
     	photos 									= new ArrayList<InstagramPhoto>();
@@ -62,7 +78,7 @@ public class PhotosActivity extends Activity {
     				for (int i = 0; i < photosJSON.length(); i++) {
     					JSONObject photoJSON	= photosJSON.getJSONObject(i);
     					InstagramPhoto photo	= new InstagramPhoto();
-    					if (photoJSON.getJSONObject("caption") != null) {
+    					if (photoJSON.getJSONObject("user") != null) {
     						photo.userName		= photoJSON.getJSONObject("user").getString("username");
     					}
     					if (photoJSON.getJSONObject("caption") != null) {
@@ -77,11 +93,14 @@ public class PhotosActivity extends Activity {
     						photos.add(photo);
     					}
     				}
+    				// update swipe container
+    				swipeContainer.setRefreshing(false);
     				// draw the list
     				photosAdapter.notifyDataSetChanged();	
     			}catch (JSONException e) {
     				// fires if things fail
     				e.printStackTrace();
+    				swipeContainer.setRefreshing(false);
     			}
      		}
     		
