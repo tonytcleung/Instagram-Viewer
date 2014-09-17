@@ -21,8 +21,10 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 
 
 public class PhotosActivity extends Activity {
-
-	public static final String CLIENT_ID		= "bc4e71c7e67e4b0e968f7d1e36a57342";
+	private static final String TAG = "MyActivity";
+	private static final String CLIENT_ID				= "bc4e71c7e67e4b0e968f7d1e36a57342";
+	private static final String INSTAGRAM_POPULAR_URL	= "https://api.instagram.com/v1/media/popular?client_id=";
+	
 	private ArrayList<InstagramPhoto> photos;
 	private InstagramPhotoAdapter photosAdapter;		
     private SwipeRefreshLayout swipeContainer;
@@ -43,7 +45,7 @@ public class PhotosActivity extends Activity {
             } 
         });
         // Configure the refreshing colors        
-        swipeContainer.setColorSchemeColors(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
         
         fetchPopularPhotos();
     }
@@ -58,7 +60,7 @@ public class PhotosActivity extends Activity {
     	lvPhotos.setAdapter(photosAdapter);
     	
     	// setup popular url endpoint
-    	String popularURL						= "https://api.instagram.com/v1/media/popular?client_id=" + CLIENT_ID;
+    	String popularURL						= INSTAGRAM_POPULAR_URL + CLIENT_ID;
     	// create network client
     	AsyncHttpClient client					= new AsyncHttpClient();
     	// trigger network request
@@ -78,17 +80,21 @@ public class PhotosActivity extends Activity {
     				for (int i = 0; i < photosJSON.length(); i++) {
     					JSONObject photoJSON	= photosJSON.getJSONObject(i);
     					InstagramPhoto photo	= new InstagramPhoto();
-    					if (photoJSON.getJSONObject("user") != null) {
+    					
+    					// only parse if the given objects exists
+    					if (photoJSON.optJSONObject("user") != null) {
     						photo.userName		= photoJSON.getJSONObject("user").getString("username");
+    						photo.userImageURL	= photoJSON.getJSONObject("user").getString("profile_picture");	
+    						Log.v(TAG, photo.userName + ": " + photo.userImageURL);
     					}
-    					if (photoJSON.getJSONObject("caption") != null) {
+    					if (photoJSON.optJSONObject("caption") != null) {
     						photo.caption		= photoJSON.getJSONObject("caption").getString("text");
     					}
-    					if (photoJSON.getJSONObject("images").getJSONObject("standard_resolution") != null) {
+    					if (photoJSON.optJSONObject("images") != null && photoJSON.getJSONObject("images").optJSONObject("standard_resolution") != null) {
     						photo.imageURL		= photoJSON.getJSONObject("images").getJSONObject("standard_resolution").getString("url");
     						photo.imageHeight	= photoJSON.getJSONObject("images").getJSONObject("standard_resolution").getInt("height");
     					}
-    					if (photoJSON.getJSONObject("likes") != null) {
+    					if (photoJSON.optJSONObject("likes") != null) {
     						photo.likesCount	= photoJSON.getJSONObject("likes").getInt("count");
     						photos.add(photo);
     					}
