@@ -12,4 +12,4 @@ Optional user stories completed:
 * Scaled the instagram image to fit
 * Added pull-to-refresh
 
-![](https://github.com/tonytcleung/Instagram-Viewer/blob/master/Instagram-Viewer/InstagramViewr.gif)
+![](https://github.com/tonytcleung/Instagram-Viewer/blob/master/InstagramViewr.gif)
